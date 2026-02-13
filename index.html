@@ -1,107 +1,485 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>First Choice Private School | E-Learning Platform</title>
-  <link rel="stylesheet" href="styles.css" />
+  <title>FCPS Campus Connect</title>
+  <style>
+    :root {
+      --bg: #f1f5ff;
+      --surface: #ffffff;
+      --primary: #1e3a8a;
+      --primary-soft: #e8eeff;
+      --accent: #2563eb;
+      --success: #0f9d58;
+      --danger: #c62828;
+      --text: #152238;
+      --muted: #5f6d84;
+      --border: #d9e2f7;
+      --shadow: 0 12px 28px rgba(30, 58, 138, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Inter", "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      background: linear-gradient(165deg, #eef3ff 0%, #f8faff 100%);
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(100deg, #102a6c 0%, #1e3a8a 90%);
+      color: #fff;
+      padding: 1.2rem 1rem;
+      text-align: center;
+      box-shadow: 0 6px 18px rgba(16, 42, 108, 0.35);
+    }
+
+    header h1 { margin: 0; font-size: 1.65rem; }
+    header p { margin: 0.35rem 0 0; color: #dbe7ff; }
+
+    .shell {
+      width: min(1080px, 95%);
+      margin: 1.25rem auto 2rem;
+      display: grid;
+      gap: 1rem;
+    }
+
+    .topbar {
+      background: var(--surface);
+      border-radius: 14px;
+      padding: 0.8rem;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+
+    button {
+      border: none;
+      cursor: pointer;
+      border-radius: 10px;
+      padding: 0.6rem 0.9rem;
+      font-size: 0.92rem;
+      font-weight: 600;
+      transition: transform 0.15s ease, background 0.2s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+
+    .nav-btn { background: var(--primary-soft); color: var(--primary); }
+    .nav-btn.active,
+    .action-btn { background: var(--primary); color: #fff; }
+    .danger-btn { background: #fee4e4; color: var(--danger); }
+
+    .status-box {
+      font-size: 0.9rem;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      text-align: right;
+    }
+
+    .status-box strong { color: var(--text); }
+
+    .section {
+      display: none;
+      background: var(--surface);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 1rem;
+    }
+
+    .section.active { display: block; }
+
+    h2 { margin-top: 0.1rem; margin-bottom: 0.8rem; }
+    h3 { margin-bottom: 0.5rem; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.7rem;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.85rem;
+      background: #fcfdff;
+      margin-bottom: 0.7rem;
+    }
+
+    input, select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 0.55rem 0.65rem;
+      font-size: 0.95rem;
+      margin-bottom: 0.45rem;
+    }
+
+    .muted { color: var(--muted); }
+
+    .wallet-chip {
+      display: inline-flex;
+      align-items: center;
+      background: #e9f8ef;
+      color: #1f7a47;
+      border: 1px solid #b8e6c9;
+      border-radius: 999px;
+      padding: 0.35rem 0.65rem;
+      font-size: 0.86rem;
+      font-weight: 700;
+    }
+
+    .cart-total {
+      font-size: 1.02rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-top: 0.4rem;
+    }
+
+    .msg {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-top: 0.45rem;
+    }
+
+    .msg.success { color: var(--success); }
+    .msg.error { color: var(--danger); }
+
+    @media (max-width: 760px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      .status-box { text-align: left; }
+    }
+  </style>
 </head>
 <body>
-  <header class="topbar">
-    <div>
-      <h1>First Choice Private School</h1>
-      <p class="tagline">E-learning hub for educators and students.</p>
-    </div>
-    <div class="session-info">
-      <p id="sessionLabel">Not logged in</p>
-      <button id="logoutBtn" class="secondary" hidden>Log out</button>
-    </div>
+  <header>
+    <h1>FCPS Campus Connect</h1>
+    <p>Unified marketplace for students and admins</p>
   </header>
 
-  <main>
-    <section class="card" id="loginCard">
-      <h2>Login</h2>
-      <p>Choose your role to access educator or student tools.</p>
-      <form id="loginForm" class="stacked">
-        <label>Role
-          <select name="role" required>
-            <option value="educator">Educator</option>
-            <option value="student">Student</option>
-          </select>
-        </label>
-        <label>Email
-          <input type="email" name="email" required placeholder="name@fcps.edu" />
-        </label>
-        <label>Password
-          <input type="password" name="password" required placeholder="Enter password" />
-        </label>
-        <button type="submit">Login</button>
-      </form>
-      <p class="helper">Demo accounts: ava.teacher@fcps.edu / teach123, liam.student@fcps.edu / learn123</p>
-      <p id="loginError" class="error" hidden></p>
-    </section>
-
-    <section id="dashboard" hidden>
-      <section class="card">
-        <h2>Platform Summary</h2>
-        <div class="kpis">
-          <div><span id="taskCount">0</span><small>Total Tasks</small></div>
-          <div><span id="submissionCount">0</span><small>Submissions</small></div>
-          <div><span id="feedbackCount">0</span><small>Feedback Shared</small></div>
-        </div>
-      </section>
-
-      <section class="card" id="educatorPanel" hidden>
-        <h2>Educator Workspace</h2>
-        <form id="taskForm" class="grid">
-          <label>Task Type
-            <select name="type" required>
-              <option value="Exercise">Exercise</option>
-              <option value="Assignment">Assignment</option>
-              <option value="Test">Test</option>
-            </select>
-          </label>
-          <label>Due Date
-            <input type="date" name="dueDate" required />
-          </label>
-          <label class="full">Title
-            <input type="text" name="title" required placeholder="e.g., Algebra Fractions Practice" />
-          </label>
-          <label class="full">Task File (PDF or Word)
-            <input type="file" name="taskFile" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required />
-          </label>
-          <label class="full">Instructions / Comments
-            <textarea name="instructions" rows="3" required placeholder="Provide instructions and grading comments for students..."></textarea>
-          </label>
-          <button class="full" type="submit">Upload Task</button>
-        </form>
-
-        <h3>Uploaded Tasks</h3>
-        <div id="educatorTasks" class="list"></div>
-      </section>
-
-      <section class="card" id="studentPanel" hidden>
-        <h2>Student Workspace</h2>
-        <p>Download/read your uploaded tasks and submit your completed work.</p>
-        <div id="studentTasks" class="list"></div>
-      </section>
-    </section>
-  </main>
-
-  <template id="taskCardTemplate">
-    <article class="task-card">
-      <div class="task-head">
-        <h4 class="task-title"></h4>
-        <span class="pill task-type"></span>
+  <div class="shell">
+    <div class="topbar">
+      <nav>
+        <button class="nav-btn" data-section="authSection">Accounts & Login</button>
+        <button class="nav-btn" data-section="walletSection">Student Wallet</button>
+        <button class="nav-btn" data-section="adminSection">Admin Products</button>
+        <button class="nav-btn" data-section="marketSection">Marketplace</button>
+        <button class="nav-btn" data-section="cartSection">Cart & Checkout</button>
+      </nav>
+      <div class="status-box">
+        <strong id="sessionLabel">Not logged in</strong>
+        <span id="walletLabel" class="muted">Wallet: --</span>
+        <button id="logoutBtn" class="danger-btn" style="display:none;">Logout</button>
       </div>
-      <p class="task-meta"></p>
-      <p class="task-file"></p>
-      <p class="task-instructions"></p>
-      <div class="submission-area"></div>
-      <div class="feedback-list"></div>
-    </article>
-  </template>
+    </div>
 
-  <script src="app.js"></script>
+    <section id="authSection" class="section">
+      <h2>Create Account & Login</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Create Student/Admin Account</h3>
+          <input id="regName" type="text" placeholder="Full name" />
+          <input id="regEmail" type="email" placeholder="Email" />
+          <input id="regPassword" type="password" placeholder="Password" />
+          <select id="regRole">
+            <option value="">Select role</option>
+            <option value="student">Student</option>
+            <option value="admin">Admin</option>
+          </select>
+          <button class="action-btn" onclick="registerAccount()">Create Account</button>
+          <p id="registerMessage" class="msg"></p>
+        </div>
+
+        <div class="card">
+          <h3>Login</h3>
+          <input id="loginEmail" type="email" placeholder="Email" />
+          <input id="loginPassword" type="password" placeholder="Password" />
+          <select id="loginRole">
+            <option value="student">Student</option>
+            <option value="admin">Admin</option>
+          </select>
+          <button class="action-btn" onclick="loginUser()">Login</button>
+          <p id="loginMessage" class="msg"></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="walletSection" class="section">
+      <h2>Student Wallet</h2>
+      <p class="muted">Deposit funds into your digital wallet to pay for purchases on Campus Connect.</p>
+      <div class="card">
+        <label for="depositAmount">Deposit Amount ($)</label>
+        <input id="depositAmount" type="number" min="1" step="0.01" placeholder="e.g. 25" />
+        <button class="action-btn" onclick="depositFunds()">Deposit</button>
+        <p id="walletMessage" class="msg"></p>
+      </div>
+    </section>
+
+    <section id="adminSection" class="section">
+      <h2>Admin Product Management</h2>
+      <div class="card">
+        <input id="productName" type="text" placeholder="Product Name" />
+        <input id="productPrice" type="number" min="0.01" step="0.01" placeholder="Price" />
+        <select id="productCategory">
+          <option value="">Select Category</option>
+          <option>Uniform</option>
+          <option>Books</option>
+          <option>Hats</option>
+          <option>Cover Pages</option>
+          <option>Study Aid</option>
+          <option>Event Tickets</option>
+        </select>
+        <button class="action-btn" onclick="addProduct()">Add Product</button>
+        <p id="adminMessage" class="msg"></p>
+      </div>
+    </section>
+
+    <section id="marketSection" class="section">
+      <h2>Marketplace</h2>
+      <div id="productList"></div>
+    </section>
+
+    <section id="cartSection" class="section">
+      <h2>Your Cart</h2>
+      <div id="cartItems"></div>
+      <div class="cart-total" id="totalPrice">Total: $0.00</div>
+      <button class="action-btn" onclick="checkout()">Pay with Student Wallet</button>
+      <p id="checkoutMessage" class="msg"></p>
+    </section>
+  </div>
+
+  <script>
+    const users = [
+      { name: 'Demo Student', email: 'student@fcps.edu', password: '1234', role: 'student', wallet: 40 },
+      { name: 'Demo Admin', email: 'admin@fcps.edu', password: '1234', role: 'admin' }
+    ];
+
+    const products = [
+      { name: 'School Uniform', price: 35, category: 'Uniform' },
+      { name: 'Math Workbook', price: 12.5, category: 'Books' },
+      { name: 'Science Fair Ticket', price: 8, category: 'Event Tickets' }
+    ];
+
+    let currentUser = null;
+    let cart = [];
+
+    const navButtons = [...document.querySelectorAll('.nav-btn')];
+
+    function showSection(id) {
+      document.querySelectorAll('.section').forEach((section) => section.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      navButtons.forEach((btn) => btn.classList.toggle('active', btn.dataset.section === id));
+    }
+
+    navButtons.forEach((button) => button.addEventListener('click', () => showSection(button.dataset.section)));
+
+    function setMessage(id, text, ok = true) {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.className = `msg ${ok ? 'success' : 'error'}`;
+    }
+
+    function refreshSessionUI() {
+      const sessionLabel = document.getElementById('sessionLabel');
+      const walletLabel = document.getElementById('walletLabel');
+      const logoutBtn = document.getElementById('logoutBtn');
+
+      if (!currentUser) {
+        sessionLabel.textContent = 'Not logged in';
+        walletLabel.textContent = 'Wallet: --';
+        logoutBtn.style.display = 'none';
+        return;
+      }
+
+      sessionLabel.textContent = `Logged in: ${currentUser.name} (${currentUser.role})`;
+      walletLabel.innerHTML = currentUser.role === 'student'
+        ? `Wallet: <span class="wallet-chip">$${(currentUser.wallet || 0).toFixed(2)}</span>`
+        : 'Wallet: N/A for admin';
+      logoutBtn.style.display = 'inline-block';
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      currentUser = null;
+      cart = [];
+      displayCart();
+      refreshSessionUI();
+      setMessage('loginMessage', 'Logged out successfully.', true);
+      showSection('authSection');
+    });
+
+    function registerAccount() {
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim().toLowerCase();
+      const password = document.getElementById('regPassword').value.trim();
+      const role = document.getElementById('regRole').value;
+
+      if (!name || !email || !password || !role) {
+        setMessage('registerMessage', 'Fill in all registration details.', false);
+        return;
+      }
+
+      if (users.some((u) => u.email === email)) {
+        setMessage('registerMessage', 'Account already exists for this email.', false);
+        return;
+      }
+
+      users.push({ name, email, password, role, wallet: role === 'student' ? 0 : undefined });
+      setMessage('registerMessage', `Account created for ${name}. You can now login.`, true);
+      document.getElementById('regName').value = '';
+      document.getElementById('regEmail').value = '';
+      document.getElementById('regPassword').value = '';
+      document.getElementById('regRole').value = '';
+    }
+
+    function loginUser() {
+      const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+      const password = document.getElementById('loginPassword').value.trim();
+      const role = document.getElementById('loginRole').value;
+
+      const found = users.find((u) => u.email === email && u.password === password && u.role === role);
+      if (!found) {
+        setMessage('loginMessage', 'Invalid login credentials.', false);
+        return;
+      }
+
+      currentUser = found;
+      setMessage('loginMessage', `Welcome ${currentUser.name}!`, true);
+      refreshSessionUI();
+      displayProducts();
+      displayCart();
+      showSection('marketSection');
+    }
+
+    function depositFunds() {
+      if (!currentUser || currentUser.role !== 'student') {
+        setMessage('walletMessage', 'Only logged-in students can deposit funds.', false);
+        return;
+      }
+
+      const amount = parseFloat(document.getElementById('depositAmount').value);
+      if (!amount || amount <= 0) {
+        setMessage('walletMessage', 'Enter a valid deposit amount.', false);
+        return;
+      }
+
+      currentUser.wallet += amount;
+      setMessage('walletMessage', `Deposit successful: $${amount.toFixed(2)} added to your wallet.`, true);
+      document.getElementById('depositAmount').value = '';
+      refreshSessionUI();
+    }
+
+    function addProduct() {
+      if (!currentUser || currentUser.role !== 'admin') {
+        setMessage('adminMessage', 'Only admins can add products.', false);
+        return;
+      }
+
+      const name = document.getElementById('productName').value.trim();
+      const price = parseFloat(document.getElementById('productPrice').value);
+      const category = document.getElementById('productCategory').value;
+
+      if (!name || !price || price <= 0 || !category) {
+        setMessage('adminMessage', 'Provide valid product details.', false);
+        return;
+      }
+
+      products.push({ name, price, category });
+      displayProducts();
+      setMessage('adminMessage', `Product "${name}" added successfully.`, true);
+      document.getElementById('productName').value = '';
+      document.getElementById('productPrice').value = '';
+      document.getElementById('productCategory').value = '';
+    }
+
+    function displayProducts() {
+      const productList = document.getElementById('productList');
+      productList.innerHTML = '';
+
+      products.forEach((product, index) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <h3>${product.name}</h3>
+          <p><strong>Category:</strong> ${product.category}</p>
+          <p><strong>Price:</strong> $${product.price.toFixed(2)}</p>
+          <button class="action-btn" onclick="addToCart(${index})">Add to Cart</button>
+        `;
+        productList.appendChild(card);
+      });
+    }
+
+    function addToCart(index) {
+      if (!currentUser || currentUser.role !== 'student') {
+        alert('Please login as a student to add items to cart.');
+        return;
+      }
+
+      cart.push(products[index]);
+      displayCart();
+    }
+
+    function displayCart() {
+      const cartItems = document.getElementById('cartItems');
+      cartItems.innerHTML = '';
+      let total = 0;
+
+      if (cart.length === 0) {
+        cartItems.innerHTML = '<p class="muted">Your cart is empty.</p>';
+      } else {
+        cart.forEach((item) => {
+          total += item.price;
+          const itemCard = document.createElement('div');
+          itemCard.className = 'card';
+          itemCard.textContent = `${item.name} - $${item.price.toFixed(2)}`;
+          cartItems.appendChild(itemCard);
+        });
+      }
+
+      document.getElementById('totalPrice').textContent = `Total: $${total.toFixed(2)}`;
+    }
+
+    function checkout() {
+      if (!currentUser || currentUser.role !== 'student') {
+        setMessage('checkoutMessage', 'Only logged-in students can checkout.', false);
+        return;
+      }
+
+      if (cart.length === 0) {
+        setMessage('checkoutMessage', 'Cart is empty.', false);
+        return;
+      }
+
+      const total = cart.reduce((sum, item) => sum + item.price, 0);
+      if ((currentUser.wallet || 0) < total) {
+        setMessage('checkoutMessage', `Insufficient wallet balance. Need $${(total - currentUser.wallet).toFixed(2)} more.`, false);
+        return;
+      }
+
+      currentUser.wallet -= total;
+      cart = [];
+      displayCart();
+      refreshSessionUI();
+      setMessage('checkoutMessage', `Payment successful! $${total.toFixed(2)} deducted from your wallet.`, true);
+    }
+
+    displayProducts();
+    displayCart();
+    refreshSessionUI();
+    showSection('authSection');
+  </script>
 </body>
 </html>
