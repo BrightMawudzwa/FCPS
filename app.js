@@ -30,14 +30,17 @@ const tasks = [
     id: 1,
     type: 'Exercise',
     title: 'Grammar Skills: Verb Tenses',
-    instructions: 'Complete section A and B in your notebook and submit your answers.',
+    fileName: 'verb-tenses-exercise.pdf',
+    fileType: 'PDF',
+    instructions: 'Complete section A and B in your notebook and submit your file.',
     dueDate: '2026-03-15',
     educator: 'Ava Teacher',
     submissions: [
       {
         studentEmail: 'liam.student@fcps.edu',
         studentName: 'Liam Student',
-        response: 'Completed both sections and added examples for each tense.',
+        comment: 'I have attached my completed worksheet.',
+        fileName: 'liam-verb-tenses.docx',
         feedback: 'Great detail and clear examples. Review irregular verbs once more.'
       }
     ]
@@ -46,6 +49,8 @@ const tasks = [
     id: 2,
     type: 'Assignment',
     title: 'Science Report: Water Cycle',
+    fileName: 'water-cycle-assignment.docx',
+    fileType: 'Word',
     instructions: 'Prepare a one-page report and include a labeled diagram.',
     dueDate: '2026-03-18',
     educator: 'Ava Teacher',
@@ -53,12 +58,15 @@ const tasks = [
   }
 ];
 
+function fileKind(name = '') {
+  const lowered = name.toLowerCase();
+  if (lowered.endsWith('.pdf')) return 'PDF';
+  return 'Word';
+}
+
 function refreshSummary() {
   const totalSubmissions = tasks.reduce((sum, task) => sum + task.submissions.length, 0);
-  const totalFeedback = tasks.reduce(
-    (sum, task) => sum + task.submissions.filter((submission) => submission.feedback).length,
-    0
-  );
+  const totalFeedback = tasks.reduce((sum, task) => sum + task.submissions.filter((s) => s.feedback).length, 0);
 
   taskCountEl.textContent = String(tasks.length);
   submissionCountEl.textContent = String(totalSubmissions);
@@ -73,6 +81,17 @@ function formatDueDate(dateValue) {
   });
 }
 
+function baseTaskCard(task, metaLabel) {
+  const card = taskTemplate.content.cloneNode(true);
+  card.querySelector('.task-title').textContent = task.title;
+  card.querySelector('.task-type').textContent = task.type;
+  card.querySelector('.task-type').classList.add(`type-${task.type.toLowerCase()}`);
+  card.querySelector('.task-meta').textContent = `Due: ${formatDueDate(task.dueDate)} · ${metaLabel}: ${task.educator}`;
+  card.querySelector('.task-file').textContent = `Task file: ${task.fileName} (${task.fileType})`;
+  card.querySelector('.task-instructions').textContent = `Instructions / Comments: ${task.instructions}`;
+  return card;
+}
+
 function renderEducatorView() {
   educatorTasksEl.innerHTML = '';
 
@@ -82,13 +101,7 @@ function renderEducatorView() {
   }
 
   tasks.forEach((task) => {
-    const card = taskTemplate.content.cloneNode(true);
-    card.querySelector('.task-title').textContent = task.title;
-    card.querySelector('.task-type').textContent = task.type;
-    card.querySelector('.task-type').classList.add(`type-${task.type.toLowerCase()}`);
-    card.querySelector('.task-meta').textContent = `Due: ${formatDueDate(task.dueDate)} · Uploaded by ${task.educator}`;
-    card.querySelector('.task-instructions').textContent = task.instructions;
-
+    const card = baseTaskCard(task, 'Uploaded by');
     const submissionArea = card.querySelector('.submission-area');
     const feedbackList = card.querySelector('.feedback-list');
 
@@ -99,8 +112,8 @@ function renderEducatorView() {
         const block = document.createElement('div');
         block.className = 'submission-block';
         block.innerHTML = `
-          <p><strong>${submission.studentName}</strong> submitted:</p>
-          <p>${submission.response}</p>
+          <p><strong>${submission.studentName}</strong> submitted <strong>${submission.fileName || 'no file'}</strong>.</p>
+          <p>Student comment: ${submission.comment || 'No comment added.'}</p>
         `;
 
         const feedbackForm = document.createElement('form');
@@ -133,13 +146,7 @@ function renderStudentView() {
   studentTasksEl.innerHTML = '';
 
   tasks.forEach((task) => {
-    const card = taskTemplate.content.cloneNode(true);
-    card.querySelector('.task-title').textContent = task.title;
-    card.querySelector('.task-type').textContent = task.type;
-    card.querySelector('.task-type').classList.add(`type-${task.type.toLowerCase()}`);
-    card.querySelector('.task-meta').textContent = `Due: ${formatDueDate(task.dueDate)} · Educator: ${task.educator}`;
-    card.querySelector('.task-instructions').textContent = task.instructions;
-
+    const card = baseTaskCard(task, 'Educator');
     const submissionArea = card.querySelector('.submission-area');
     const feedbackList = card.querySelector('.feedback-list');
 
@@ -148,35 +155,46 @@ function renderStudentView() {
     const submitForm = document.createElement('form');
     submitForm.className = 'stacked';
     submitForm.innerHTML = `
-      <label>Your Response
-        <textarea name="response" rows="3" placeholder="Submit your work or answers here...">${submission?.response || ''}</textarea>
+      <label>Completed File (PDF or Word)
+        <input type="file" name="submissionFile" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" ${submission ? '' : 'required'} />
+      </label>
+      <label>Submission Comment
+        <textarea name="comment" rows="2" placeholder="Add comments for your teacher...">${submission?.comment || ''}</textarea>
       </label>
       <button type="submit">${submission ? 'Update Submission' : 'Submit Task'}</button>
     `;
 
     submitForm.addEventListener('submit', (event) => {
       event.preventDefault();
-      const response = new FormData(submitForm).get('response').toString().trim();
-      if (!response) return;
+      const data = new FormData(submitForm);
+      const comment = data.get('comment').toString().trim();
+      const upload = data.get('submissionFile');
+      const hasUpload = upload && typeof upload === 'object' && upload.name;
+
+      if (!hasUpload && !submission) return;
 
       if (submission) {
-        submission.response = response;
+        submission.comment = comment;
+        if (hasUpload) submission.fileName = upload.name;
       } else {
         task.submissions.push({
           studentEmail: currentUser.email,
           studentName: currentUser.name,
-          response,
+          comment,
+          fileName: upload.name,
           feedback: ''
         });
       }
+
       renderApp();
     });
 
     submissionArea.appendChild(submitForm);
 
-    feedbackList.innerHTML = submission?.feedback
-      ? `<p class="feedback">Educator Feedback: ${submission.feedback}</p>`
-      : '<p class="muted">No feedback yet.</p>';
+    feedbackList.innerHTML = `
+      <p class="muted">Your latest file: ${submission?.fileName || 'No submission yet.'}</p>
+      ${submission?.feedback ? `<p class="feedback">Educator Feedback: ${submission.feedback}</p>` : '<p class="muted">No feedback yet.</p>'}
+    `;
 
     studentTasksEl.appendChild(card);
   });
@@ -235,10 +253,15 @@ taskForm.addEventListener('submit', (event) => {
   event.preventDefault();
 
   const data = new FormData(taskForm);
+  const taskUpload = data.get('taskFile');
+  if (!taskUpload || typeof taskUpload !== 'object' || !taskUpload.name) return;
+
   tasks.unshift({
     id: taskSeed++,
     type: data.get('type').toString(),
     title: data.get('title').toString().trim(),
+    fileName: taskUpload.name,
+    fileType: fileKind(taskUpload.name),
     instructions: data.get('instructions').toString().trim(),
     dueDate: data.get('dueDate').toString(),
     educator: currentUser.name,

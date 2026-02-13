@@ -5,9 +5,10 @@ A lightweight front-end prototype for First Choice Private School's digital lear
 ## Features
 
 - **Role-based login** for educators and students.
-- **Educator workspace** to upload exercises, assignments, and tests.
-- **Student workspace** to view tasks and submit responses.
-- **Feedback loop** where educators can review submissions and provide student feedback.
+- **Educator workspace** to upload exercises, assignments, and tests as **PDF/Word files**.
+- **Instruction/comment box** on each uploaded task.
+- **Student workspace** to submit completed work as PDF/Word files with optional comments.
+- **Feedback loop** where educators review submissions and provide feedback.
 - **Dashboard metrics** for task, submission, and feedback counts.
 
 ## Demo Accounts

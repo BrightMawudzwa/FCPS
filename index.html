@@ -67,8 +67,11 @@
           <label class="full">Title
             <input type="text" name="title" required placeholder="e.g., Algebra Fractions Practice" />
           </label>
-          <label class="full">Instructions
-            <textarea name="instructions" rows="3" required placeholder="Provide instructions for students..."></textarea>
+          <label class="full">Task File (PDF or Word)
+            <input type="file" name="taskFile" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required />
+          </label>
+          <label class="full">Instructions / Comments
+            <textarea name="instructions" rows="3" required placeholder="Provide instructions and grading comments for students..."></textarea>
           </label>
           <button class="full" type="submit">Upload Task</button>
         </form>
@@ -79,7 +82,7 @@
 
       <section class="card" id="studentPanel" hidden>
         <h2>Student Workspace</h2>
-        <p>Complete your exercises, assignments, and tests below.</p>
+        <p>Download/read your uploaded tasks and submit your completed work.</p>
         <div id="studentTasks" class="list"></div>
       </section>
     </section>
@@ -92,6 +95,7 @@
         <span class="pill task-type"></span>
       </div>
       <p class="task-meta"></p>
+      <p class="task-file"></p>
       <p class="task-instructions"></p>
       <div class="submission-area"></div>
       <div class="feedback-list"></div>

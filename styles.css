@@ -138,6 +138,13 @@ button.secondary {
 
 .task-title { margin: 0; }
 .task-meta { margin: 0.3rem 0; color: var(--subtle); font-size: 0.9rem; }
+
+.task-file {
+  margin: 0.2rem 0;
+  color: #1d3ea9;
+  font-size: 0.9rem;
+}
+
 .task-instructions { margin: 0.4rem 0 0.7rem; }
 
 .pill {
