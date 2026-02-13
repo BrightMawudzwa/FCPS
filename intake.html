@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>CampusCare Pulse • Intake</title><link rel="stylesheet" href="styles.css" /></head>
+<body>
+<main class="app">
+  <header class="header">
+    <div class="brand"><div class="brand__logo">CP</div><div><h1>CampusCare Pulse</h1><p id="subtitleText">Private School Family Support Hub</p></div></div>
+    <div><label for="language">Language</label><select id="language"><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option></select></div>
+  </header>
+  <nav class="nav"><a href="index.html">Overview</a><a href="intake.html">Intake</a><a href="queue.html">Case Queue</a><a href="analytics.html">Analytics</a></nav>
+  <section class="card">
+    <h2>Family Support Ticket Intake</h2>
+    <form id="ticketForm" class="form-grid">
+      <div><label for="familyName">Family Name</label><input id="familyName" required placeholder="Lee Family" /></div>
+      <div><label for="studentName">Student</label><input id="studentName" required placeholder="Ariana Lee (Grade 8)" /></div>
+      <div><label for="topic">Support Area</label><select id="topic"><option>Academic Concern</option><option>Billing & Tuition</option><option>Counseling Request</option><option>Transportation</option><option>Schedule Change</option></select></div>
+      <div><label for="channel">Contact Channel</label><select id="channel"><option>Email</option><option>Phone</option><option>Portal</option><option>Walk-in</option></select></div>
+      <div class="full"><label for="details">Case Details</label><textarea id="details" rows="4" required></textarea></div>
+      <div class="full"><button class="btn-primary" type="submit">Create Ticket</button></div>
+    </form>
+    <div id="feedback" class="footer-note">Auto-detection uses tone, urgency cues, and school workflow rules.</div>
+  </section>
+</main>
+<script src="js/data-store.js"></script><script src="js/intelligence.js"></script><script src="js/routing.js"></script><script src="js/ui.js"></script>
+<script>
+CampusUI.nav(); CampusUI.bindLanguage(); CampusUI.renderHeader();
+document.getElementById('ticketForm').addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const family = familyName.value.trim();
+  const student = studentName.value.trim();
+  const topic = document.getElementById('topic').value;
+  const details = document.getElementById('details').value.trim();
+  const priority = CampusAI.inferPriority(topic, details);
+  const sentiment = CampusAI.analyzeSentiment(details);
+  const owner = CampusRouting.assignOwner(topic, priority);
+  const ticketId = CampusStore.addTicket({ family, student, topic, priority, sentiment, owner, status:'Open', minutesOpen:1 });
+  e.target.reset();
+  document.getElementById('feedback').textContent = `Ticket ${ticketId} created • ${priority} priority • ${sentiment} • Owner: ${owner}`;
+});
+</script>
+</body>
+</html>

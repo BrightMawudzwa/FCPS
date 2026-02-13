@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>CampusCare Pulse • Case Queue</title><link rel="stylesheet" href="styles.css" /></head>
+<body>
+<main class="app">
+  <header class="header">
+    <div class="brand"><div class="brand__logo">CP</div><div><h1>CampusCare Pulse</h1><p id="subtitleText">Private School Family Support Hub</p></div></div>
+    <div><label for="language">Language</label><select id="language"><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option></select></div>
+  </header>
+  <nav class="nav"><a href="index.html">Overview</a><a href="intake.html">Intake</a><a href="queue.html">Case Queue</a><a href="analytics.html">Analytics</a></nav>
+  <section class="card"><h2>Live Case Queue</h2><ul id="queueList" class="queue-items"></ul></section>
+</main>
+<script src="js/data-store.js"></script><script src="js/ui.js"></script>
+<script>
+CampusUI.nav(); CampusUI.bindLanguage(); CampusUI.renderHeader(); CampusUI.queue('queueList');
+setInterval(()=>{CampusStore.ageQueue(); CampusUI.queue('queueList');},15000);
+</script>
+</body>
+</html>
