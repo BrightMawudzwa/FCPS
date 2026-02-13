@@ -1,134 +1,275 @@
-const form = document.getElementById('ticketForm');
-const queueBody = document.getElementById('queueBody');
-const rowTemplate = document.getElementById('rowTemplate');
-const autoAssignBtn = document.getElementById('autoAssignBtn');
-const languageSelect = document.getElementById('languageSelect');
-const openCasesEl = document.getElementById('openCases');
-const slaRiskEl = document.getElementById('slaRisk');
-const aiInsightEl = document.getElementById('aiInsight');
+const loginForm = document.getElementById('loginForm');
+const loginError = document.getElementById('loginError');
+const loginCard = document.getElementById('loginCard');
+const dashboard = document.getElementById('dashboard');
+const logoutBtn = document.getElementById('logoutBtn');
+const sessionLabel = document.getElementById('sessionLabel');
 
-const owners = ['Admissions Team', 'Finance Office', 'Dean of Students', 'Transport Desk', 'Athletics Director'];
-let caseSeed = 1042;
+const educatorPanel = document.getElementById('educatorPanel');
+const studentPanel = document.getElementById('studentPanel');
+const taskForm = document.getElementById('taskForm');
+const educatorTasksEl = document.getElementById('educatorTasks');
+const studentTasksEl = document.getElementById('studentTasks');
+const taskTemplate = document.getElementById('taskCardTemplate');
 
-const cases = [
+const taskCountEl = document.getElementById('taskCount');
+const submissionCountEl = document.getElementById('submissionCount');
+const feedbackCountEl = document.getElementById('feedbackCount');
+
+const users = [
+  { role: 'educator', email: 'ava.teacher@fcps.edu', password: 'teach123', name: 'Ava Teacher' },
+  { role: 'student', email: 'liam.student@fcps.edu', password: 'learn123', name: 'Liam Student' },
+  { role: 'student', email: 'zoe.student@fcps.edu', password: 'learn123', name: 'Zoe Student' }
+];
+
+let taskSeed = 3;
+let currentUser = null;
+
+const tasks = [
   {
-    id: 'CC-1040', family: 'Liu Family', student: 'Ethan Liu', category: 'Transportation',
-    priority: 'High', sentiment: 'Concerned', owner: 'Transport Desk', status: 'In Progress'
+    id: 1,
+    type: 'Exercise',
+    title: 'Grammar Skills: Verb Tenses',
+    fileName: 'verb-tenses-exercise.pdf',
+    fileType: 'PDF',
+    instructions: 'Complete section A and B in your notebook and submit your file.',
+    dueDate: '2026-03-15',
+    educator: 'Ava Teacher',
+    submissions: [
+      {
+        studentEmail: 'liam.student@fcps.edu',
+        studentName: 'Liam Student',
+        comment: 'I have attached my completed worksheet.',
+        fileName: 'liam-verb-tenses.docx',
+        feedback: 'Great detail and clear examples. Review irregular verbs once more.'
+      }
+    ]
   },
   {
-    id: 'CC-1041', family: 'Garcia Family', student: 'Sofia Garcia', category: 'Billing',
-    priority: 'Medium', sentiment: 'Neutral', owner: 'Finance Office', status: 'Open'
+    id: 2,
+    type: 'Assignment',
+    title: 'Science Report: Water Cycle',
+    fileName: 'water-cycle-assignment.docx',
+    fileType: 'Word',
+    instructions: 'Prepare a one-page report and include a labeled diagram.',
+    dueDate: '2026-03-18',
+    educator: 'Ava Teacher',
+    submissions: []
   }
 ];
 
-function analyzeSentiment(text) {
-  const lowered = text.toLowerCase();
-  if (/(urgent|upset|frustrated|angry|immediately|not safe|asap)/.test(lowered)) return 'Concerned';
-  if (/(thank|appreciate|great|happy)/.test(lowered)) return 'Positive';
-  return 'Neutral';
+function fileKind(name = '') {
+  const lowered = name.toLowerCase();
+  if (lowered.endsWith('.pdf')) return 'PDF';
+  return 'Word';
 }
 
-function inferPriority(category, sentiment) {
-  if (sentiment === 'Concerned' || category === 'Wellbeing') return 'High';
-  if (category === 'Billing' || category === 'Transportation') return 'Medium';
-  return 'Low';
+function refreshSummary() {
+  const totalSubmissions = tasks.reduce((sum, task) => sum + task.submissions.length, 0);
+  const totalFeedback = tasks.reduce((sum, task) => sum + task.submissions.filter((s) => s.feedback).length, 0);
+
+  taskCountEl.textContent = String(tasks.length);
+  submissionCountEl.textContent = String(totalSubmissions);
+  feedbackCountEl.textContent = String(totalFeedback);
 }
 
-function assignOwner(category) {
-  const map = {
-    Academics: 'Dean of Students',
-    Billing: 'Finance Office',
-    Transportation: 'Transport Desk',
-    Wellbeing: 'Dean of Students',
-    Athletics: 'Athletics Director'
-  };
-  return map[category] || owners[Math.floor(Math.random() * owners.length)];
+function formatDueDate(dateValue) {
+  return new Date(dateValue).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
 }
 
-function renderCases() {
-  queueBody.innerHTML = '';
-  for (const c of cases) {
-    const clone = rowTemplate.content.cloneNode(true);
-    clone.querySelector('.id').textContent = c.id;
-    clone.querySelector('.family').textContent = c.family;
-    clone.querySelector('.student').textContent = c.student;
-    clone.querySelector('.category').textContent = c.category;
+function baseTaskCard(task, metaLabel) {
+  const card = taskTemplate.content.cloneNode(true);
+  card.querySelector('.task-title').textContent = task.title;
+  card.querySelector('.task-type').textContent = task.type;
+  card.querySelector('.task-type').classList.add(`type-${task.type.toLowerCase()}`);
+  card.querySelector('.task-meta').textContent = `Due: ${formatDueDate(task.dueDate)} · ${metaLabel}: ${task.educator}`;
+  card.querySelector('.task-file').textContent = `Task file: ${task.fileName} (${task.fileType})`;
+  card.querySelector('.task-instructions').textContent = `Instructions / Comments: ${task.instructions}`;
+  return card;
+}
 
-    const priority = clone.querySelector('.priority');
-    priority.textContent = c.priority;
-    priority.className = `pill priority priority-${c.priority.toLowerCase()}`;
+function renderEducatorView() {
+  educatorTasksEl.innerHTML = '';
 
-    const sentiment = clone.querySelector('.sentiment');
-    sentiment.textContent = c.sentiment;
-    sentiment.className = `pill sentiment sentiment-${c.sentiment.toLowerCase()}`;
+  if (!tasks.length) {
+    educatorTasksEl.innerHTML = '<p>No tasks uploaded yet.</p>';
+    return;
+  }
 
-    clone.querySelector('.owner').textContent = c.owner;
+  tasks.forEach((task) => {
+    const card = baseTaskCard(task, 'Uploaded by');
+    const submissionArea = card.querySelector('.submission-area');
+    const feedbackList = card.querySelector('.feedback-list');
 
-    const statusSelect = clone.querySelector('.statusSelect');
-    statusSelect.value = c.status;
-    statusSelect.addEventListener('change', (e) => {
-      c.status = e.target.value;
-      refreshKpis();
+    if (!task.submissions.length) {
+      submissionArea.innerHTML = '<p class="muted">No student submissions yet.</p>';
+    } else {
+      task.submissions.forEach((submission, index) => {
+        const block = document.createElement('div');
+        block.className = 'submission-block';
+        block.innerHTML = `
+          <p><strong>${submission.studentName}</strong> submitted <strong>${submission.fileName || 'no file'}</strong>.</p>
+          <p>Student comment: ${submission.comment || 'No comment added.'}</p>
+        `;
+
+        const feedbackForm = document.createElement('form');
+        feedbackForm.className = 'stacked feedback-form';
+        feedbackForm.innerHTML = `
+          <label>Educator Feedback
+            <textarea name="feedback" rows="2" placeholder="Write feedback for this student...">${submission.feedback || ''}</textarea>
+          </label>
+          <button type="submit">Save Feedback</button>
+        `;
+
+        feedbackForm.addEventListener('submit', (event) => {
+          event.preventDefault();
+          const feedback = new FormData(feedbackForm).get('feedback').toString().trim();
+          task.submissions[index].feedback = feedback;
+          renderApp();
+        });
+
+        block.appendChild(feedbackForm);
+        submissionArea.appendChild(block);
+      });
+    }
+
+    feedbackList.innerHTML = `<p class="muted">Feedback shared: ${task.submissions.filter((s) => s.feedback).length}</p>`;
+    educatorTasksEl.appendChild(card);
+  });
+}
+
+function renderStudentView() {
+  studentTasksEl.innerHTML = '';
+
+  tasks.forEach((task) => {
+    const card = baseTaskCard(task, 'Educator');
+    const submissionArea = card.querySelector('.submission-area');
+    const feedbackList = card.querySelector('.feedback-list');
+
+    const submission = task.submissions.find((entry) => entry.studentEmail === currentUser.email);
+
+    const submitForm = document.createElement('form');
+    submitForm.className = 'stacked';
+    submitForm.innerHTML = `
+      <label>Completed File (PDF or Word)
+        <input type="file" name="submissionFile" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" ${submission ? '' : 'required'} />
+      </label>
+      <label>Submission Comment
+        <textarea name="comment" rows="2" placeholder="Add comments for your teacher...">${submission?.comment || ''}</textarea>
+      </label>
+      <button type="submit">${submission ? 'Update Submission' : 'Submit Task'}</button>
+    `;
+
+    submitForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const data = new FormData(submitForm);
+      const comment = data.get('comment').toString().trim();
+      const upload = data.get('submissionFile');
+      const hasUpload = upload && typeof upload === 'object' && upload.name;
+
+      if (!hasUpload && !submission) return;
+
+      if (submission) {
+        submission.comment = comment;
+        if (hasUpload) submission.fileName = upload.name;
+      } else {
+        task.submissions.push({
+          studentEmail: currentUser.email,
+          studentName: currentUser.name,
+          comment,
+          fileName: upload.name,
+          feedback: ''
+        });
+      }
+
+      renderApp();
     });
 
-    queueBody.appendChild(clone);
-  }
-  refreshKpis();
+    submissionArea.appendChild(submitForm);
+
+    feedbackList.innerHTML = `
+      <p class="muted">Your latest file: ${submission?.fileName || 'No submission yet.'}</p>
+      ${submission?.feedback ? `<p class="feedback">Educator Feedback: ${submission.feedback}</p>` : '<p class="muted">No feedback yet.</p>'}
+    `;
+
+    studentTasksEl.appendChild(card);
+  });
 }
 
-function refreshKpis() {
-  const open = cases.filter((c) => c.status !== 'Resolved').length;
-  const risks = cases.filter((c) => c.priority === 'High' && c.status === 'Open').length;
-  openCasesEl.textContent = String(open);
-  slaRiskEl.textContent = String(risks);
+function renderApp() {
+  refreshSummary();
+  if (!currentUser) return;
 
-  if (risks > 1) {
-    aiInsightEl.textContent = 'AI Insight: Escalate to Dean and trigger SMS outreach for high-priority families.';
-  } else if (open > 5) {
-    aiInsightEl.textContent = 'AI Insight: Queue volume rising. Offer chatbot deflection for routine billing and transport FAQs.';
+  const isEducator = currentUser.role === 'educator';
+  educatorPanel.hidden = !isEducator;
+  studentPanel.hidden = isEducator;
+
+  if (isEducator) {
+    renderEducatorView();
   } else {
-    aiInsightEl.textContent = 'AI Insight: Great service pace. No urgent intervention needed.';
+    renderStudentView();
   }
 }
 
-form.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const data = new FormData(form);
-  const message = data.get('message');
-  const category = data.get('category');
-  const sentiment = analyzeSentiment(message);
-  const priority = inferPriority(category, sentiment);
-  cases.unshift({
-    id: `CC-${caseSeed++}`,
-    family: `${data.get('name')} Family`,
-    student: data.get('student'),
-    category,
-    priority,
-    sentiment,
-    owner: 'Unassigned',
-    status: 'Open'
-  });
-  renderCases();
-  form.reset();
-});
+loginForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const data = new FormData(loginForm);
+  const role = data.get('role');
+  const email = data.get('email').toString().trim().toLowerCase();
+  const password = data.get('password').toString();
 
-autoAssignBtn.addEventListener('click', () => {
-  cases.forEach((c) => {
-    if (c.owner === 'Unassigned') c.owner = assignOwner(c.category);
-  });
-  renderCases();
-});
+  const foundUser = users.find((user) => user.role === role && user.email === email && user.password === password);
 
-languageSelect.addEventListener('change', () => {
-  const lang = languageSelect.value;
-  document.documentElement.lang = lang;
-  if (lang === 'es') {
-    aiInsightEl.textContent = 'Perspectiva IA: Ritmo de servicio excelente. No se necesita intervención urgente.';
-  } else if (lang === 'fr') {
-    aiInsightEl.textContent = 'Aperçu IA : excellent rythme de service. Aucune intervention urgente nécessaire.';
-  } else {
-    refreshKpis();
+  if (!foundUser) {
+    loginError.hidden = false;
+    loginError.textContent = 'Invalid credentials. Please use one of the demo accounts.';
+    return;
   }
+
+  currentUser = foundUser;
+  loginError.hidden = true;
+  loginCard.hidden = true;
+  dashboard.hidden = false;
+  logoutBtn.hidden = false;
+  sessionLabel.textContent = `Logged in as ${currentUser.name} (${currentUser.role})`;
+
+  renderApp();
 });
 
-renderCases();
+logoutBtn.addEventListener('click', () => {
+  currentUser = null;
+  loginCard.hidden = false;
+  dashboard.hidden = true;
+  logoutBtn.hidden = true;
+  sessionLabel.textContent = 'Not logged in';
+  loginForm.reset();
+});
+
+taskForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+
+  const data = new FormData(taskForm);
+  const taskUpload = data.get('taskFile');
+  if (!taskUpload || typeof taskUpload !== 'object' || !taskUpload.name) return;
+
+  tasks.unshift({
+    id: taskSeed++,
+    type: data.get('type').toString(),
+    title: data.get('title').toString().trim(),
+    fileName: taskUpload.name,
+    fileType: fileKind(taskUpload.name),
+    instructions: data.get('instructions').toString().trim(),
+    dueDate: data.get('dueDate').toString(),
+    educator: currentUser.name,
+    submissions: []
+  });
+
+  taskForm.reset();
+  renderApp();
+});
+
+refreshSummary();
